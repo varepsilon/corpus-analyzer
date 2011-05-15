@@ -5,6 +5,7 @@ import os
 import sys
 import codecs
 import re
+import time
 
 DATA_DIRECTORY = 'data'
 CHUNK_SIZE = 100 * 1024 * 1024  # 100 Mb
@@ -28,7 +29,9 @@ def processStreamChuked(stream, regex, termsList, currentStatsItem):
         if not chunk:
             break
         processedSize += len(chunk)
-        print >>sys.stderr, '%.2f' % (float(processedSize) / fileSize * 100)
+        print >>sys.stderr, '%s: %.2f' % (
+            time.asctime(time.localtime()), float(processedSize) / fileSize * 100
+        )
         chunk = unicode(chunk, 'utf-8')
         chunk = SPECIAL_CHARS.sub(u' ', chunk)
         for m in regex.finditer(chunk):
