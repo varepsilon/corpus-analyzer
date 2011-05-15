@@ -20,8 +20,15 @@ class StatsItem:
 def processStreamChuked(stream, regex, termsList, currentStatsItem):
     chunk = '(empty)'
     currentStatsItem.total = 1
+    fileSize = os.path.getsize(stream.name)
+    print >>sys.stderr, 'Processing %s...' % (stream.name)
+    processedSize = 0
     while chunk:
         chunk = ''.join(stream.readlines(CHUNK_SIZE))
+        if not chunk:
+            break
+        processedSize += len(chunk)
+        print >>sys.stderr, '%.2f' % (float(processedSize) / fileSize * 100)
         chunk = unicode(chunk, 'utf-8')
         chunk = SPECIAL_CHARS.sub(u' ', chunk)
         for m in regex.finditer(chunk):
@@ -56,7 +63,7 @@ def readWordsFile(fname):
     terms = []
     with open(fname) as f:
         for l in f:
-            l = unicode(l.rstrip(), 'utf-8')
+            l = unicode(l.strip(), 'utf-8')
             terms.append(l)
             # do not represent this sub-group in resulting match
             wordRegex = l.replace('(', '(?:')
