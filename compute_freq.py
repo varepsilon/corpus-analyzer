@@ -12,35 +12,6 @@ CHUNK_SIZE = 100 * 1024 * 1024  # 100 Mb
 SPECIAL_CHARS = re.compile(u'(?u)[\'\"\\«\\»\\.\\,\\:\\!\\?\\-\\—\\;\\(\\)\\n]')
 WHITESPACES = re.compile(u'(?u)\\s+')
 
-def printTF(terms, tf):
-    for term in terms:
-        print term,
-        if not tf.has_key(term):
-            print
-            continue
-        freqs = tf[term]
-        for corp, freq in freqs.items():
-            print corp, freq,
-        print
-
-def handle_terms(terms):
-    tf = {}
-    totals = {}
-    docs = os.listdir(dataDir)
-    for doc_name in docs:
-        with open(os.path.join(dataDir, doc_name)) as doc:
-            for line in doc:
-                line = unicode(line, "utf-8")
-                for term in terms:
-                    if term != "" and line.find(" " + term) != -1:
-                        if not tf.has_key(term):
-                            tf[term] = {}
-                        if tf[term].has_key(doc_name):
-                            tf[term][doc_name] += 1
-                        else:
-                            tf[term][doc_name] = 1
-    return tf
-
 class StatsItem:
     def __init__(self):
         self.dict = {}
@@ -48,6 +19,7 @@ class StatsItem:
 
 def processStreamChuked(stream, regex, termsList, currentStatsItem):
     chunk = '(empty)'
+    currentStatsItem.total = 1
     while chunk:
         chunk = ''.join(stream.readlines(CHUNK_SIZE))
         chunk = unicode(chunk, 'utf-8')
