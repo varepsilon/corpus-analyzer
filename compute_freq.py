@@ -7,8 +7,9 @@ import codecs
 import re
 import time
 
-#DATA_DIRECTORY = 'tst_data'
-DATA_DIRECTORY = 'data_small'
+DATA_DIRECTORY = 'tst_data'
+#DATA_DIRECTORY = 'data_small'
+#DATA_DIRECTORY = 'data'
 CHUNK_SIZE = 100 * 1024 * 1024  # 100 Mb
 
 SPECIAL_CHARS = re.compile(u'(?u)[\'\"\\«\\»\\.\\,\\:\\!\\?\\-\\—\\;\\(\\)\\n]')
@@ -54,14 +55,15 @@ def processData(dataDir, terms, termsRegexs):
             curItem = StatsItem()
             processStreamChuked(doc, termsRegexs, terms, curItem)
             byDocsStatistics[docName] = curItem
-    print u'\t'.join(['term'] + docs)
+    print u'\t'.join([u'term'] + docs)
     for term in terms:
         curString = [term]
         for docName in docs:
             curString.append(unicode(float(byDocsStatistics[docName].dict.get(term, 0))
                     / byDocsStatistics[docName].total
             ))
-        print u'\t'.join(curString)
+        resultString = u'\t'.join(curString)
+        print resultString.encode('utf-8')
 
 def readWordsFile(fname):
     wordRegexs = []
@@ -73,7 +75,7 @@ def readWordsFile(fname):
             # do not represent this sub-group in resulting match
             wordRegex = l.replace(u'(', u'(?:')
             # unicode, case-insesitive
-            wordRegex = ''.join([u'(?ui)', u'(\\ ', wordRegex, u'\\ )'])
+            wordRegex = u''.join([u'(?ui)', u'(\\ ', wordRegex, u'\\ )'])
             wordRegexs.append(re.compile(wordRegex))
     return terms, wordRegexs
 
