@@ -7,7 +7,8 @@ import codecs
 import re
 import time
 
-DATA_DIRECTORY = 'tst_data'
+#DATA_DIRECTORY = 'tst_data'
+DATA_DIRECTORY = 'data_small'
 CHUNK_SIZE = 100 * 1024 * 1024  # 100 Mb
 
 SPECIAL_CHARS = re.compile(u'(?u)[\'\"\\«\\»\\.\\,\\:\\!\\?\\-\\—\\;\\(\\)\\n]')
@@ -18,13 +19,16 @@ class StatsItem:
         self.dict = {}
         self.total = 0
 
-def processStreamChuked(stream, regex, termsList, currentStatsItem):
+def processStreamChuked(stream, regexs, termsList, currentStatsItem):
     chunk = '(empty)'
     currentStatsItem.total = 1
     fileSize = os.path.getsize(stream.name)
     print >>sys.stderr, 'Processing %s...' % (stream.name)
     processedSize = 0
     while chunk:
+        # Read integer number of lines in order to avoid problem with
+        # decoding from utf-8.
+        # CHUNK_SIZE is _approximate_ number of bytes to be read
         chunk = ''.join(stream.readlines(CHUNK_SIZE))
         if not chunk:
             break
@@ -34,22 +38,21 @@ def processStreamChuked(stream, regex, termsList, currentStatsItem):
         )
         chunk = unicode(chunk, 'utf-8')
         chunk = SPECIAL_CHARS.sub(u' ', chunk)
-        for m in regex.finditer(chunk):
-            for idx, term in enumerate(termsList):
-                currentStatsItem.dict.setdefault(term, 0)
-                if m.groups()[idx]:
-                    currentStatsItem.dict[term] += 1
+        for (i, term) in enumerate(termsList):
+            currentStatsItem.dict.setdefault(term, 0) # count matches
+            for m in regexs[i].finditer(chunk):
+                currentStatsItem.dict[term] += 1
         for m in WHITESPACES.finditer(chunk):
             currentStatsItem.total += 1
 
 
-def processData(dataDir, terms, termsRegex):
+def processData(dataDir, terms, termsRegexs):
     docs = os.listdir(dataDir)
     byDocsStatistics = {}
     for docName in docs:
         with open(os.path.join(dataDir, docName)) as doc:
             curItem = StatsItem()
-            processStreamChuked(doc, termsRegex, terms, curItem)
+            processStreamChuked(doc, termsRegexs, terms, curItem)
             byDocsStatistics[docName] = curItem
     print u'\t'.join(['term'] + docs)
     for term in terms:
@@ -61,7 +64,6 @@ def processData(dataDir, terms, termsRegex):
         print u'\t'.join(curString)
 
 def readWordsFile(fname):
-    bigRegexRaw = u'(?ui)' # unicode, case-insensitive
     wordRegexs = []
     terms = []
     with open(fname) as f:
@@ -69,18 +71,20 @@ def readWordsFile(fname):
             l = unicode(l.strip(), 'utf-8')
             terms.append(l)
             # do not represent this sub-group in resulting match
-            wordRegex = l.replace('(', '(?:')
-            wordRegexs.append(u'(\\ %s\\ )' % wordRegex)
-    bigRegexRaw += u'|'.join(wordRegexs)
-    return terms, re.compile(bigRegexRaw)
+            wordRegex = l.replace(u'(', u'(?:')
+            # unicode, case-insesitive
+            wordRegex = ''.join([u'(?ui)', u'(\\ ', wordRegex, u'\\ )'])
+            print wordRegex
+            wordRegexs.append(re.compile(wordRegex))
+    return terms, wordRegexs
 
 def main():
     if len(sys.argv) != 2:
         print >>sys.stderr, "Incorrect number of arguments!"\
             "Usage: %s file_with words" % sys.argv[0]
         sys.exit(1)
-    terms, termsRegex = readWordsFile(sys.argv[1])
-    processData(DATA_DIRECTORY, terms, termsRegex)
+    terms, termsRegexs = readWordsFile(sys.argv[1])
+    processData(DATA_DIRECTORY, terms, termsRegexs)
 
 if __name__ == '__main__':
     main()
