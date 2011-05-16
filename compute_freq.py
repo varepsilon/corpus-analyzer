@@ -74,7 +74,6 @@ def readWordsFile(fname):
             wordRegex = l.replace(u'(', u'(?:')
             # unicode, case-insesitive
             wordRegex = ''.join([u'(?ui)', u'(\\ ', wordRegex, u'\\ )'])
-            print wordRegex
             wordRegexs.append(re.compile(wordRegex))
     return terms, wordRegexs
 
