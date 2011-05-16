@@ -7,7 +7,7 @@ import codecs
 import re
 import time
 
-DATA_DIRECTORY = 'data'
+DATA_DIRECTORY = 'tst_data'
 CHUNK_SIZE = 100 * 1024 * 1024  # 100 Mb
 
 SPECIAL_CHARS = re.compile(u'(?u)[\'\"\\«\\»\\.\\,\\:\\!\\?\\-\\—\\;\\(\\)\\n]')
@@ -51,14 +51,14 @@ def processData(dataDir, terms, termsRegex):
             curItem = StatsItem()
             processStreamChuked(doc, termsRegex, terms, curItem)
             byDocsStatistics[docName] = curItem
-    print '\t'.join(['term'] + docs)
+    print u'\t'.join(['term'] + docs)
     for term in terms:
         curString = [term]
         for docName in docs:
-            curString.append(str(float(byDocsStatistics[docName].dict.get(term, 0))
+            curString.append(unicode(float(byDocsStatistics[docName].dict.get(term, 0))
                     / byDocsStatistics[docName].total
             ))
-        print '\t'.join(curString)
+        print u'\t'.join(curString)
 
 def readWordsFile(fname):
     bigRegexRaw = u'(?ui)' # unicode, case-insensitive
