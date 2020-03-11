@@ -1,3 +1,5 @@
+CorpusAnalizer utility to compute statistics of words (regexps) in a given corpus.
+
 1) Put your corpora to data/ subdirectory
 2) Put your words \n-separated to file
 3) Run like: ./compute_freq.py words_file
